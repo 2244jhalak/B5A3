@@ -1,16 +1,22 @@
 import express, { Application, Request, Response } from "express"
 import cors from 'cors';
+import { globalErrorHandler } from "./app/middlewares/globalErrorHandler";
+import { booksRouter } from "./app/controllers/book.controllers";
+import { borrowRouter } from "./app/controllers/borrow.controllers";
+import { notFoundHandler } from "./app/middlewares/notFoundHandler";
 
 
 const app: Application =express();
 
 app.use(express.json());
 app.use(cors());
-// app.use("/notes", notesRouter);
-// app.use("/users", usersRouter);
+app.use("/", booksRouter);
+app.use("/", borrowRouter);
+app.use(globalErrorHandler);
+app.use(notFoundHandler)
 
 app.get("/",async (req: Request , res: Response)=>{
-    res.json({message: "You have got me😁"})
+    res.json({message: "Library Management API is running"})
 })
 
 export default app
