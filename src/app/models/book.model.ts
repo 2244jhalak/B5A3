@@ -10,7 +10,6 @@ export interface IBook {
   available?: boolean;
 }
 
-
 export interface BookDocument extends IBook, Document {}
 
 export interface BookModel extends Model<BookDocument> {
@@ -32,6 +31,7 @@ const bookSchema = new Schema<BookDocument, BookModel>(
   { timestamps: true, versionKey: false }
 );
 
+// ✅ Static Method
 bookSchema.statics.updateAvailability = async function (bookId: string) {
   const book = await this.findById(bookId);
   if (book) {
@@ -40,5 +40,17 @@ bookSchema.statics.updateAvailability = async function (bookId: string) {
   }
 };
 
-export const Book = mongoose.model<BookDocument, BookModel>('Book', bookSchema);
+// ✅ Pre-save Middleware
+bookSchema.pre('save', function (next) {
+  this.available = this.copies > 0;
+  console.log(`[Pre-Save] Availability updated to: ${this.available}`);
+  next();
+});
 
+// ✅ Post-save Middleware
+bookSchema.post('save', function (doc, next) {
+  console.log(`[Post-Save] Book saved: ${doc.title} | Copies: ${doc.copies}`);
+  next();
+});
+
+export const Book = mongoose.model<BookDocument, BookModel>('Book', bookSchema);
