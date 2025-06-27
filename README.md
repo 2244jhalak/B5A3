@@ -53,3 +53,8 @@ This API supports:
    ```bash
    git clone https://github.com/2244jhalak/B5A3.git
    cd B5A3
+   npm install
+2. Create a .env file in the root directory and add the following environment variables:
+PORT=5000
+MONGODB_URI=your_mongodb_connection_string
+
