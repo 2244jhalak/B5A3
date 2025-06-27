@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import { z } from 'zod';
 import { FilterQuery } from 'mongoose';
-import { Book, BookDocument } from '../models/book.model'; // নিশ্চিত করো BookDocument ইম্পোর্ট করা আছে
+import { Book, BookDocument } from '../models/book.model'; 
 import { sendResponse } from '../utils/sendResponse';
 
 export const booksRouter = express.Router();
@@ -28,7 +28,7 @@ booksRouter.post('/', async (req: Request, res: Response, next: NextFunction) =>
     const newBook = await Book.create(body);
     sendResponse(res, newBook, 'Book created successfully');
   } catch (error) {
-    next(error); // Global Error Handler এ যাবে
+    next(error); 
   }
 });
 
@@ -37,7 +37,7 @@ booksRouter.get('/', async (req: Request, res: Response, next: NextFunction) => 
   try {
     const { filter, sortBy = 'createdAt', sort = 'desc', limit = '10' } = req.query;
 
-    // FilterQuery টাইপ দিয়ে query তৈরি করলাম
+    
     const query: FilterQuery<BookDocument> = filter ? { genre: filter as string } : {};
 
     const books = await Book.find(query)
