@@ -1,9 +1,10 @@
-import express, { NextFunction, Request, Response } from "express";
+import express, { NextFunction, Request, Response } from 'express';
 import { z } from 'zod';
-import { Book } from "../models/book.model";
-import { sendResponse } from "../utils/sendResponse";
+import { FilterQuery } from 'mongoose';
+import { Book, BookDocument } from '../models/book.model'; // নিশ্চিত করো BookDocument ইম্পোর্ট করা আছে
+import { sendResponse } from '../utils/sendResponse';
 
-export const booksRouter= express.Router();
+export const booksRouter = express.Router();
 
 const bookZodSchema = z.object({
   title: z.string({ required_error: 'Title is required' }),
@@ -15,8 +16,13 @@ const bookZodSchema = z.object({
   available: z.boolean().optional(),
 });
 
+// Custom Error interface with optional statusCode
+interface CustomError extends Error {
+  statusCode?: number;
+}
+
 // Create a new book
-booksRouter.post("/api/books", async (req: Request, res: Response, next: NextFunction) => {
+booksRouter.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const body = bookZodSchema.parse(req.body); // Zod validation
     const newBook = await Book.create(body);
@@ -27,13 +33,17 @@ booksRouter.post("/api/books", async (req: Request, res: Response, next: NextFun
 });
 
 // Get all books
-booksRouter.get("/api/books", async (req: Request, res: Response, next: NextFunction) => {
+booksRouter.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { filter, sortBy = 'createdAt', sort = 'desc', limit = '10' } = req.query;
-    const query: any = filter ? { genre: filter } : {};
+
+    // FilterQuery টাইপ দিয়ে query তৈরি করলাম
+    const query: FilterQuery<BookDocument> = filter ? { genre: filter as string } : {};
+
     const books = await Book.find(query)
       .sort({ [sortBy as string]: sort === 'asc' ? 1 : -1 })
       .limit(parseInt(limit as string));
+
     sendResponse(res, books, 'Books retrieved successfully');
   } catch (error) {
     next(error);
@@ -41,12 +51,12 @@ booksRouter.get("/api/books", async (req: Request, res: Response, next: NextFunc
 });
 
 // Get book by ID
-booksRouter.get("/api/books/:bookId", async (req: Request, res: Response, next: NextFunction) => {
+booksRouter.get('/:bookId', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const book = await Book.findById(req.params.bookId);
     if (!book) {
-      const error = new Error("Book not found");
-      (error as any).statusCode = 404;
+      const error = new Error('Book not found') as CustomError;
+      error.statusCode = 404;
       throw error;
     }
     sendResponse(res, book, 'Book retrieved successfully');
@@ -55,8 +65,8 @@ booksRouter.get("/api/books/:bookId", async (req: Request, res: Response, next: 
   }
 });
 
-// Update
-booksRouter.patch("/api/books/:bookId", async (req: Request, res: Response, next: NextFunction) => {
+// Update book by ID
+booksRouter.put('/:bookId', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const book = await Book.findByIdAndUpdate(
       req.params.bookId,
@@ -65,8 +75,8 @@ booksRouter.patch("/api/books/:bookId", async (req: Request, res: Response, next
     );
 
     if (!book) {
-      const error = new Error('Book not found');
-      (error as any).statusCode = 404;
+      const error = new Error('Book not found') as CustomError;
+      error.statusCode = 404;
       throw error;
     }
 
@@ -76,13 +86,13 @@ booksRouter.patch("/api/books/:bookId", async (req: Request, res: Response, next
   }
 });
 
-// Delete Book
-booksRouter.delete("/api/books/:bookId", async (req: Request, res: Response, next: NextFunction) => {
+// Delete book by ID
+booksRouter.delete('/:bookId', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const deleted = await Book.findByIdAndDelete(req.params.bookId);
     if (!deleted) {
-      const error = new Error('Book not found');
-      (error as any).statusCode = 404;
+      const error = new Error('Book not found') as CustomError;
+      error.statusCode = 404;
       throw error;
     }
     sendResponse(res, null, 'Book deleted successfully');

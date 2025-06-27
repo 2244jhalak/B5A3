@@ -1,8 +1,25 @@
-import mongoose from "mongoose";
-import { IBook } from "../interfaces/book.interface";
+import mongoose, { Schema, Model, Document } from 'mongoose';
+
+export interface IBook {
+  title: string;
+  author: string;
+  genre: 'FICTION' | 'NON_FICTION' | 'SCIENCE' | 'HISTORY' | 'BIOGRAPHY' | 'FANTASY';
+  isbn: string;
+  description?: string;
+  copies: number;
+  available?: boolean;
+}
+
+
+export interface BookDocument extends IBook, Document {}
+
+export interface BookModel extends Model<BookDocument> {
+  updateAvailability(bookId: string): Promise<void>;
+}
 
 const genreEnum = ['FICTION', 'NON_FICTION', 'SCIENCE', 'HISTORY', 'BIOGRAPHY', 'FANTASY'];
-const bookSchema = new mongoose.Schema<IBook>(
+
+const bookSchema = new Schema<BookDocument, BookModel>(
   {
     title: { type: String, required: true },
     author: { type: String, required: true },
@@ -15,7 +32,6 @@ const bookSchema = new mongoose.Schema<IBook>(
   { timestamps: true, versionKey: false }
 );
 
-// Static method to update availability
 bookSchema.statics.updateAvailability = async function (bookId: string) {
   const book = await this.findById(bookId);
   if (book) {
@@ -24,4 +40,5 @@ bookSchema.statics.updateAvailability = async function (bookId: string) {
   }
 };
 
-export const Book = mongoose.model('Book', bookSchema);
+export const Book = mongoose.model<BookDocument, BookModel>('Book', bookSchema);
+
