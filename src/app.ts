@@ -17,7 +17,7 @@ app.use(notFoundHandler);
 app.use(globalErrorHandler);
 
 app.get('/',async (req: Request , res: Response)=>{
-    res.json({message: 'Library Management API is running'});
+    res.json({message: 'B5A3 is running'});
 });
 
 export default app;
