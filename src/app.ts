@@ -13,12 +13,12 @@ app.use(cors());
 app.use('/api/books', booksRouter);
 app.use('/api/borrow', borrowRouter);
 
-app.use(notFoundHandler);
-app.use(globalErrorHandler);
-
 app.get('/',async (req: Request , res: Response)=>{
     res.json({message: 'B5A3 is running'});
 });
+
+app.use(notFoundHandler);
+app.use(globalErrorHandler);
 
 export default app;
 
