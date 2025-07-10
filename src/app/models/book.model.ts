@@ -1,14 +1,5 @@
 import mongoose, { Schema, Model, Document } from 'mongoose';
-
-export interface IBook {
-  title: string;
-  author: string;
-  genre: 'FICTION' | 'NON_FICTION' | 'SCIENCE' | 'HISTORY' | 'BIOGRAPHY' | 'FANTASY';
-  isbn: string;
-  description?: string;
-  copies: number;
-  available?: boolean;
-}
+import { IBook } from '../interfaces/book.interface';
 
 export interface BookDocument extends IBook, Document {}
 
@@ -27,6 +18,7 @@ const bookSchema = new Schema<BookDocument, BookModel>(
     description: { type: String },
     copies: { type: Number, required: true, min: [0, 'Copies must be a positive number'] },
     available: { type: Boolean, default: true },
+    image: { type: String, default: '' }
   },
   { timestamps: true, versionKey: false }
 );

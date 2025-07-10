@@ -8,6 +8,7 @@ export interface IBook {
   description?: string;
   copies: number;
   available?: boolean;
+  image?: string; 
 }
 
 export interface BookModel extends Model<IBook> {

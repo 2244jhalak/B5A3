@@ -1,11 +1,12 @@
 import express, { NextFunction, Request, Response } from 'express';
 import { z } from 'zod';
 import { FilterQuery } from 'mongoose';
-import { Book, BookDocument } from '../models/book.model'; 
+import { Book, BookDocument } from '../models/book.model';
 import { sendResponse } from '../utils/sendResponse';
 
 export const booksRouter = express.Router();
 
+// ✅ Zod Schema
 const bookZodSchema = z.object({
   title: z.string({ required_error: 'Title is required' }),
   author: z.string({ required_error: 'Author is required' }),
@@ -14,35 +15,51 @@ const bookZodSchema = z.object({
   description: z.string().optional(),
   copies: z.number().min(0, 'Copies must be a positive number'),
   available: z.boolean().optional(),
+  image: z.string().url({ message: 'Must be a valid image URL' }).optional(),
 });
 
-// Custom Error interface with optional statusCode
+// ✅ Partial Schema for Update
+const bookUpdateSchema = bookZodSchema.partial();
+
+// ✅ Custom Error Interface
 interface CustomError extends Error {
   statusCode?: number;
 }
 
-// Create a new book
+// ✅ Create a new book
 booksRouter.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const body = bookZodSchema.parse(req.body); // Zod validation
+    const body = bookZodSchema.parse(req.body);
     const newBook = await Book.create(body);
     sendResponse(res, newBook, 'Book created successfully');
   } catch (error) {
-    next(error); 
+    next(error);
   }
 });
 
-// Get all books
+// ✅ Get all books with pagination, filter, sort
 booksRouter.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { filter, sortBy = 'createdAt', sort = 'desc', limit = '10' } = req.query;
+    const {
+      filter,
+      sortBy = 'createdAt',
+      sort = 'desc',
+      limit = '10',
+      page = '1',
+    } = req.query;
 
-    
-    const query: FilterQuery<BookDocument> = filter ? { genre: filter as string } : {};
+    const query: FilterQuery<BookDocument> = filter
+      ? { genre: filter as string }
+      : {};
+
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = parseInt(limit as string, 10);
+    const skip = (pageNum - 1) * limitNum;
 
     const books = await Book.find(query)
       .sort({ [sortBy as string]: sort === 'asc' ? 1 : -1 })
-      .limit(parseInt(limit as string));
+      .skip(skip)
+      .limit(limitNum);
 
     sendResponse(res, books, 'Books retrieved successfully');
   } catch (error) {
@@ -50,7 +67,7 @@ booksRouter.get('/', async (req: Request, res: Response, next: NextFunction) => 
   }
 });
 
-// Get book by ID
+// ✅ Get book by ID
 booksRouter.get('/:bookId', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const book = await Book.findById(req.params.bookId);
@@ -65,12 +82,13 @@ booksRouter.get('/:bookId', async (req: Request, res: Response, next: NextFuncti
   }
 });
 
-// Update book by ID
+// ✅ Update book by ID
 booksRouter.put('/:bookId', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const body = bookUpdateSchema.parse(req.body); // Validate incoming data
     const book = await Book.findByIdAndUpdate(
       req.params.bookId,
-      { $set: req.body },
+      { $set: body },
       { new: true }
     );
 
@@ -86,7 +104,7 @@ booksRouter.put('/:bookId', async (req: Request, res: Response, next: NextFuncti
   }
 });
 
-// Delete book by ID
+// ✅ Delete book by ID
 booksRouter.delete('/:bookId', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const deleted = await Book.findByIdAndDelete(req.params.bookId);
