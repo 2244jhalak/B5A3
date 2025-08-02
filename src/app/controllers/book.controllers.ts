@@ -82,10 +82,15 @@ booksRouter.get('/:bookId', async (req: Request, res: Response, next: NextFuncti
   }
 });
 
-// ✅ Update book by ID
 booksRouter.put('/:bookId', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const body = bookUpdateSchema.parse(req.body); // Validate incoming data
+
+    // copies 0 হলে available false সেট করো
+    if (body.copies === 0) {
+      body.available = false;
+    }
+
     const book = await Book.findByIdAndUpdate(
       req.params.bookId,
       { $set: body },
@@ -103,6 +108,7 @@ booksRouter.put('/:bookId', async (req: Request, res: Response, next: NextFuncti
     next(error);
   }
 });
+
 
 // ✅ Delete book by ID
 booksRouter.delete('/:bookId', async (req: Request, res: Response, next: NextFunction) => {
