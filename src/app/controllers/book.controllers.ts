@@ -6,7 +6,7 @@ import { sendResponse } from '../utils/sendResponse';
 
 export const booksRouter = express.Router();
 
-// ✅ Zod Schema
+// ✅ Zod Schema for validation
 const bookZodSchema = z.object({
   title: z.string({ required_error: 'Title is required' }),
   author: z.string({ required_error: 'Author is required' }),
@@ -18,7 +18,7 @@ const bookZodSchema = z.object({
   image: z.string().url({ message: 'Must be a valid image URL' }).optional(),
 });
 
-// ✅ Partial Schema for Update
+// ✅ Partial Schema for update
 const bookUpdateSchema = bookZodSchema.partial();
 
 // ✅ Custom Error Interface
@@ -37,7 +37,7 @@ booksRouter.post('/', async (req: Request, res: Response, next: NextFunction) =>
   }
 });
 
-// ✅ Get all books with pagination, filter, sort
+// ✅ Get all books with filter, sort, and pagination
 booksRouter.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const {
@@ -67,7 +67,7 @@ booksRouter.get('/', async (req: Request, res: Response, next: NextFunction) => 
   }
 });
 
-// ✅ Get book by ID
+// ✅ Get a single book by ID
 booksRouter.get('/:bookId', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const book = await Book.findById(req.params.bookId);
@@ -82,13 +82,16 @@ booksRouter.get('/:bookId', async (req: Request, res: Response, next: NextFuncti
   }
 });
 
+// ✅ Update a book by ID
 booksRouter.put('/:bookId', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const body = bookUpdateSchema.parse(req.body); // Validate incoming data
+    const body = bookUpdateSchema.parse(req.body);
 
-    // copies 0 হলে available false সেট করো
+    // Logic: Auto-update `available` status based on `copies`
     if (body.copies === 0) {
       body.available = false;
+    } else if (body.copies && body.copies > 0) {
+      body.available = true;
     }
 
     const book = await Book.findByIdAndUpdate(
@@ -109,8 +112,7 @@ booksRouter.put('/:bookId', async (req: Request, res: Response, next: NextFuncti
   }
 });
 
-
-// ✅ Delete book by ID
+// ✅ Delete a book by ID
 booksRouter.delete('/:bookId', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const deleted = await Book.findByIdAndDelete(req.params.bookId);
