@@ -48,42 +48,39 @@ booksRouter.get('/', async (req: Request, res: Response, next: NextFunction) => 
       page = '1',
     } = req.query;
 
-    // Filter query
     const query: FilterQuery<BookDocument> = filter ? { genre: filter as string } : {};
 
-    // Parse pagination params
     const pageNum = parseInt(page as string, 10);
     const limitNum = limit ? parseInt(limit as string, 10) : 0;
 
-    // মোট বইয়ের সংখ্যা (filter applied)
     const totalBooks = await Book.countDocuments(query);
 
-    // Query build & sorting
     let booksQuery = Book.find(query).sort({ [sortBy as string]: sort === 'asc' ? 1 : -1 });
 
-    // Pagination — skip & limit
     if (limitNum > 0) {
       const skip = (pageNum - 1) * limitNum;
-      booksQuery = booksQuery.skip(skip).limit(limitNum);  // **Important: reassignment**
+      booksQuery = booksQuery.skip(skip).limit(limitNum);
     }
 
-    // Execute query
     const books = await booksQuery.exec();
 
-    // Calculate total pages
     const totalPages = limitNum > 0 ? Math.ceil(totalBooks / limitNum) : 1;
 
-    // Send response with pagination info
+    // এখানে মূল পরিবর্তন — response structure
     sendResponse(res, {
-      data: books,
-      totalPages,
-      currentPage: pageNum,
-      totalBooks,
+      data: {
+        data: books,
+        totalPages,
+        currentPage: pageNum,
+        totalBooks,
+      }
     }, 'Books retrieved successfully');
+
   } catch (error) {
     next(error);
   }
 });
+
 
 
 
