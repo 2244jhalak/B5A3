@@ -44,28 +44,30 @@ booksRouter.get('/', async (req: Request, res: Response, next: NextFunction) => 
       filter,
       sortBy = 'createdAt',
       sort = 'desc',
-      limit = '6',
+      limit,
       page = '1',
     } = req.query;
 
-    const query: FilterQuery<BookDocument> = filter
-      ? { genre: filter as string }
-      : {};
+    const query: FilterQuery<BookDocument> = filter ? { genre: filter as string } : {};
 
     const pageNum = parseInt(page as string, 10);
-    const limitNum = parseInt(limit as string, 10);
-    const skip = (pageNum - 1) * limitNum;
+    const limitNum = limit ? parseInt(limit as string, 10) : 0;
 
-    const books = await Book.find(query)
-      .sort({ [sortBy as string]: sort === 'asc' ? 1 : -1 })
-      .skip(skip)
-      .limit(limitNum);
+    const booksQuery = Book.find(query).sort({ [sortBy as string]: sort === 'asc' ? 1 : -1 });
+
+    if (limitNum > 0) {
+      const skip = (pageNum - 1) * limitNum;
+      booksQuery.skip(skip).limit(limitNum);
+    }
+
+    const books = await booksQuery.exec();
 
     sendResponse(res, books, 'Books retrieved successfully');
   } catch (error) {
     next(error);
   }
 });
+
 
 // ✅ Get a single book by ID
 booksRouter.get('/:bookId', async (req: Request, res: Response, next: NextFunction) => {
