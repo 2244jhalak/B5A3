@@ -53,14 +53,16 @@ booksRouter.get('/', async (req: Request, res: Response, next: NextFunction) => 
     const pageNum = parseInt(page as string, 10);
     const limitNum = limit ? parseInt(limit as string, 10) : 0;
 
-    // মোট বইয়ের সংখ্যা যা query দিয়ে filter করা হয়েছে
+    // মোট বইয়ের সংখ্যা (filter অনুযায়ী)
     const totalBooks = await Book.countDocuments(query);
 
-    const booksQuery = Book.find(query).sort({ [sortBy as string]: sort === 'asc' ? 1 : -1 });
+    // Query তৈরি ও sort করা
+    let booksQuery = Book.find(query).sort({ [sortBy as string]: sort === 'asc' ? 1 : -1 });
 
     if (limitNum > 0) {
       const skip = (pageNum - 1) * limitNum;
-      booksQuery.skip(skip).limit(limitNum);
+      // **অবশ্যই reassignment করবেন**
+      booksQuery = booksQuery.skip(skip).limit(limitNum);
     }
 
     const books = await booksQuery.exec();
@@ -77,6 +79,7 @@ booksRouter.get('/', async (req: Request, res: Response, next: NextFunction) => 
     next(error);
   }
 });
+
 
 
 
