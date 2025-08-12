@@ -44,7 +44,7 @@ booksRouter.get('/', async (req: Request, res: Response, next: NextFunction) => 
       filter,
       sortBy = 'createdAt',
       sort = 'desc',
-      limit = '10',
+      limit = '6',
       page = '1',
     } = req.query;
 
