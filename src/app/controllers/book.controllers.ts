@@ -66,20 +66,18 @@ booksRouter.get('/', async (req: Request, res: Response, next: NextFunction) => 
 
     const totalPages = limitNum > 0 ? Math.ceil(totalBooks / limitNum) : 1;
 
-    // এখানে মূল পরিবর্তন — response structure
     sendResponse(res, {
-      data: {
-        data: books,
-        totalPages,
-        currentPage: pageNum,
-        totalBooks,
-      }
+      data: books,            
+      totalPages,
+      currentPage: pageNum,
+      totalBooks,
     }, 'Books retrieved successfully');
 
   } catch (error) {
     next(error);
   }
 });
+
 
 
 
