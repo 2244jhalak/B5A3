@@ -87,9 +87,6 @@ booksRouter.get('/', async (req: Request, res: Response, next: NextFunction) => 
 
 
 
-
-
-
 // ✅ Get a single book by ID
 booksRouter.get('/:bookId', async (req: Request, res: Response, next: NextFunction) => {
   try {
