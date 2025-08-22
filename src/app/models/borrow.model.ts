@@ -4,7 +4,10 @@ const borrowSchema = new mongoose.Schema(
   {
     book: { type: mongoose.Schema.Types.ObjectId, ref: 'Book', required: true },
     quantity: { type: Number, required: true, min: [1, 'Must borrow at least 1 book'] },
-    dueDate: { type: Date, required: true },
+    dueDate: { 
+      type: Date, 
+      default: Date.now, 
+    },
   },
   { timestamps: true, versionKey: false }
 );

@@ -10,15 +10,12 @@ export const borrowRouter = express.Router();
 const borrowZodSchema = z.object({
   book: z.string({ required_error: 'Book ID is required' }),
   quantity: z.number().min(1, 'Must borrow at least 1 book'),
-  dueDate: z.string({ required_error: 'Due date is required' }).refine((val) => !isNaN(Date.parse(val)), {
-    message: 'Due date must be a valid date string',
-  }),
 });
 
 // ✅ Borrow Book
 borrowRouter.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { book, quantity, dueDate } = borrowZodSchema.parse(req.body);
+    const { book, quantity } = borrowZodSchema.parse(req.body);
 
     const bookRecord = await Book.findById(book);
 
@@ -41,14 +38,22 @@ borrowRouter.post('/', async (req: Request, res: Response, next: NextFunction) =
     // ✅ Update availability
     await Book.updateAvailability(book);
 
-    // ✅ Create borrow record
+    // ✅ Create borrow record (dueDate auto set from model default)
     const borrowRecord = await Borrow.create({
       book,
       quantity,
-      dueDate: new Date(dueDate),
     });
 
-    sendResponse(res, borrowRecord, 'Book borrowed successfully');
+    // ✅ Format dates to YYYY-MM-DD for response
+    const formattedBorrow = {
+  ...borrowRecord.toObject(),
+  dueDate: borrowRecord.dueDate.toISOString().split('T')[0],
+  createdAt: borrowRecord.createdAt.toISOString().split('T')[0],
+  updatedAt: borrowRecord.updatedAt.toISOString().split('T')[0],
+};
+
+sendResponse(res, formattedBorrow, 'Book borrowed successfully');
+
   } catch (error) {
     next(error);
   }
