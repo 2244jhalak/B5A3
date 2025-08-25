@@ -50,3 +50,4 @@ Clone the repo:
 git clone https://github.com/2244jhalak/B5A3.git
 cd B5A3
 npm install
+npm run dev
